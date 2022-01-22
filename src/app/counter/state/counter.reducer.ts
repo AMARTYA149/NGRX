@@ -1,11 +1,12 @@
 import { Action, createReducer, on } from '@ngrx/store';
 import {
+  changeName,
   customIncrement,
   decrement,
   increment,
   reset,
 } from './counter.actions';
-import { initialState } from './counter.state';
+import { CounterState, initialState } from './counter.state';
 
 const _counterReducer = createReducer(
   initialState,
@@ -32,11 +33,17 @@ const _counterReducer = createReducer(
       ...state,
       counter: state.counter + action.value,
     };
+  }),
+  on(changeName, (state, action) => {
+    return {
+      ...state,
+      name: 'Mayank Barnawal',
+    };
   })
 );
 
 export function counterReducer(
-  state: { counter: number } | undefined,
+  state: CounterState | undefined,
   action: Action
 ) {
   return _counterReducer(state, action);

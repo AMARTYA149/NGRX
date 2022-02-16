@@ -13,6 +13,8 @@ import { counterReducer } from './counter/state/counter.reducer';
 import { HomeComponent } from './home/home.component';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { PostsListComponent } from './posts/posts-list/posts-list.component';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from 'src/environments/environment';
 
 @NgModule({
   declarations: [
@@ -30,6 +32,10 @@ import { PostsListComponent } from './posts/posts-list/posts-list.component';
     FormsModule,
     AppRoutingModule,
     StoreModule.forRoot({ counter: counterReducer }),
+    StoreDevtoolsModule.instrument({
+      logOnly: environment.production, // Restrict extension to log-only mode
+      autoPause: true, // Pauses recording actions and state changes when the extension window is not open
+    }),
   ],
   providers: [],
   bootstrap: [AppComponent],

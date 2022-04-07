@@ -11,13 +11,13 @@ import { getErrorMessage, getLoading } from './store/Shared/shared.selector';
 })
 export class AppComponent implements OnInit {
   title = 'ngrx-counter';
-  showLoading!: Observable<boolean>;
-  errorMessage!: Observable<string>;
+  showLoading$!: Observable<boolean>;
+  errorMessage$!: Observable<string>;
 
   constructor(private store: Store<AppState>) {}
 
   ngOnInit(): void {
-    this.showLoading = this.store.select(getLoading);
-    this.errorMessage = this.store.select(getErrorMessage);
+    this.showLoading$ = this.store.select(getLoading);
+    this.errorMessage$ = this.store.select(getErrorMessage);
   }
 }

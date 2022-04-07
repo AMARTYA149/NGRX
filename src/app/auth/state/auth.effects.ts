@@ -2,10 +2,15 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { AuthService } from 'src/app/services/auth.service';
 import { loginStart, loginSuccess } from './auth.actions';
-import { exhaustMap, map } from 'rxjs/operators';
+import { catchError, exhaustMap, map, repeat } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AppState } from 'src/app/store/app.state';
-import { setLoadingSpinner } from 'src/app/store/Shared/shared.actions';
+import {
+  setErrorMessage,
+  setLoadingSpinner,
+} from 'src/app/store/Shared/shared.actions';
+import { of } from 'rxjs';
+import { dispatch } from 'rxjs/internal/observable/pairs';
 
 @Injectable()
 export class AuthEffects {
@@ -15,18 +20,31 @@ export class AuthEffects {
     private store: Store<AppState>
   ) {}
 
-  login$ = createEffect(() => {
-    return this.actions$.pipe(
-      ofType(loginStart),
-      exhaustMap((action) => {
-        return this.authService.login(action.email, action.password).pipe(
-          map((data) => {
-            this.store.dispatch(setLoadingSpinner({ status: false }));
-            const user = this.authService.formatUser(data);
-            return loginSuccess({ user });
-          })
-        );
-      })
-    );
-  });
+  login$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(loginStart),
+        exhaustMap((action) => {
+          return this.authService.login(action.email, action.password).pipe(
+            map((data) => {
+              this.store.dispatch(setLoadingSpinner({ status: false }));
+              this.store.dispatch(setErrorMessage({ message: '' }));
+
+              const user = this.authService.formatUser(data);
+              return loginSuccess({ user });
+            }),
+            catchError((errResp) => {
+              this.store.dispatch(setLoadingSpinner({ status: false }));
+
+              const errorMessage = this.authService.getErrorMessage(
+                errResp.error.error.message
+              );
+              return of(setErrorMessage({ message: errorMessage }));
+            })
+          );
+        })
+      );
+    }
+    // { dispatch: false }
+  );
 }

@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { AuthService } from 'src/app/services/auth.service';
-import { loginStart, loginSuccess } from './auth.actions';
+import {
+  loginStart,
+  loginSuccess,
+  signUpStart,
+  signUpSuccess,
+} from './auth.actions';
 import { catchError, exhaustMap, map, repeat, tap } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
+import { createAction, Store } from '@ngrx/store';
 import { AppState } from 'src/app/store/app.state';
 import {
   setErrorMessage,
@@ -30,7 +35,6 @@ export class AuthEffects {
           return this.authService.login(action.email, action.password).pipe(
             map((data) => {
               this.store.dispatch(setLoadingSpinner({ status: false }));
-              this.store.dispatch(setErrorMessage({ message: '' }));
 
               const user = this.authService.formatUser(data);
               return loginSuccess({ user });
@@ -53,12 +57,52 @@ export class AuthEffects {
   loginRedirect$ = createEffect(
     () => {
       return this.actions$.pipe(
-        ofType(loginSuccess),
+        ofType(...[loginSuccess, signUpSuccess]),
         tap((action) => {
+          this.store.dispatch(setErrorMessage({ message: '' }));
+
           this.router.navigate(['/']);
         })
       );
     },
     { dispatch: false }
   );
+
+  // signUpRedirect$ = createEffect(
+  //   () => {
+  //     return this.actions$.pipe(
+  //       ofType(signUpSuccess),
+  //       tap((action) => {
+  //         this.store.dispatch(setErrorMessage({ message: '' }));
+
+  //         this.router.navigate(['/']);
+  //       })
+  //     );
+  //   },
+  //   { dispatch: false }
+  // );
+
+  signUp$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(signUpStart),
+      exhaustMap((action) => {
+        return this.authService.signUp(action.email, action.password).pipe(
+          map((data) => {
+            this.store.dispatch(setLoadingSpinner({ status: false }));
+
+            const user = this.authService.formatUser(data);
+            return signUpSuccess({ user });
+          }),
+          catchError((errResp) => {
+            this.store.dispatch(setLoadingSpinner({ status: false }));
+
+            const errorMessage = this.authService.getErrorMessage(
+              errResp.error.error.message
+            );
+            return of(setErrorMessage({ message: errorMessage }));
+          })
+        );
+      })
+    );
+  });
 }

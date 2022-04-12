@@ -2,12 +2,20 @@ import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { AuthService } from 'src/app/services/auth.service';
 import {
+  autoLogin,
   loginStart,
   loginSuccess,
   signUpStart,
   signUpSuccess,
 } from './auth.actions';
-import { catchError, exhaustMap, map, repeat, tap } from 'rxjs/operators';
+import {
+  catchError,
+  exhaustMap,
+  map,
+  mergeMap,
+  repeat,
+  tap,
+} from 'rxjs/operators';
 import { createAction, Store } from '@ngrx/store';
 import { AppState } from 'src/app/store/app.state';
 import {
@@ -35,8 +43,8 @@ export class AuthEffects {
           return this.authService.login(action.email, action.password).pipe(
             map((data) => {
               this.store.dispatch(setLoadingSpinner({ status: false }));
-
               const user = this.authService.formatUser(data);
+              this.authService.setUserInLocalStorage(user);
               return loginSuccess({ user });
             }),
             catchError((errResp) => {
@@ -60,7 +68,6 @@ export class AuthEffects {
         ofType(...[loginSuccess, signUpSuccess]),
         tap((action) => {
           this.store.dispatch(setErrorMessage({ message: '' }));
-
           this.router.navigate(['/']);
         })
       );
@@ -89,8 +96,9 @@ export class AuthEffects {
         return this.authService.signUp(action.email, action.password).pipe(
           map((data) => {
             this.store.dispatch(setLoadingSpinner({ status: false }));
-
             const user = this.authService.formatUser(data);
+            this.authService.setUserInLocalStorage(user);
+
             return signUpSuccess({ user });
           }),
           catchError((errResp) => {
@@ -105,4 +113,17 @@ export class AuthEffects {
       })
     );
   });
+
+  autoLogin$ = createEffect(
+    () => {
+      return this.actions$.pipe(
+        ofType(autoLogin),
+        map((action) => {
+          const user = this.authService.getUserFromLocalStorage();
+          console.log(user);
+        })
+      );
+    },
+    { dispatch: false }
+  );
 }

@@ -5,6 +5,8 @@ import { PostsService } from 'src/app/services/posts.service';
 import {
   addPost,
   addPostSuccess,
+  deletePost,
+  deletePostSuccess,
   loadPosts,
   loadPostsSuccess,
   updatePost,
@@ -55,6 +57,19 @@ export class PostsEffects {
         return this.postsService.updatePost(action.post).pipe(
           map((data) => {
             return updatePostSuccess({ post: action.post });
+          })
+        );
+      })
+    );
+  });
+
+  deletePost$ = createEffect(() => {
+    return this.actions$.pipe(
+      ofType(deletePost),
+      switchMap((action) => {
+        return this.postsService.deletePost(action.id).pipe(
+          map((data) => {
+            return deletePostSuccess({ id: action.id });
           })
         );
       })

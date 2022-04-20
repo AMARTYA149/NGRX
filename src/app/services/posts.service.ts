@@ -42,6 +42,12 @@ export class PostsService {
       postData
     );
   }
+
+  deletePost(id: string) {
+    return this.http.delete(
+      `https://angular-ngrx-3f5b7-default-rtdb.firebaseio.com/posts/${id}.json`
+    );
+  }
 }
 
 // https://vue-completecourse.firebaseio.com/posts.json

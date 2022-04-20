@@ -32,6 +32,16 @@ export class PostsService {
       post
     );
   }
+
+  updatePost(post: Post) {
+    const postData = {
+      [post.id!]: { title: post.title, description: post.description },
+    };
+    return this.http.patch(
+      `https://angular-ngrx-3f5b7-default-rtdb.firebaseio.com/posts.json`,
+      postData
+    );
+  }
 }
 
 // https://vue-completecourse.firebaseio.com/posts.json

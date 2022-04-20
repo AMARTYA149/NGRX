@@ -25,6 +25,13 @@ export class PostsService {
         })
       );
   }
+
+  addPosts(post: Post): Observable<{ name: string }> {
+    return this.http.post<{ name: string }>(
+      `https://angular-ngrx-3f5b7-default-rtdb.firebaseio.com/posts.json`,
+      post
+    );
+  }
 }
 
 // https://vue-completecourse.firebaseio.com/posts.json

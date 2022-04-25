@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { Post } from 'src/app/models/posts.model';
 import { AppState } from 'src/app/store/app.state';
+import { setLoadingSpinner } from 'src/app/store/Shared/shared.actions';
 import { updatePost } from '../state/posts.actions';
 import { getPostById } from '../state/posts.selectors';
 
@@ -17,22 +18,26 @@ export class EditPostComponent implements OnInit, OnDestroy {
   post!: Post;
   postForm!: FormGroup;
   postSubscription!: Subscription;
-  constructor(
-    private route: ActivatedRoute,
-    private store: Store<AppState>,
-    private router: Router
-  ) {}
+  constructor(private store: Store<AppState>, private router: Router) {}
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      this.postSubscription = this.store
-        .select(getPostById, { id })
-        .subscribe((data) => {
-          this.post = data;
-          this.createForm();
-          console.log(this.post);
-        });
+    // this.route.paramMap.subscribe((params) => {
+    //   const id = params.get('id');
+    //   this.postSubscription = this.store
+    //     .select(getPostById, { id })
+    //     .subscribe((data) => {
+    //       this.post = data;
+    //       this.createForm();
+    //       console.log(this.post);
+    //     });
+    // });
+    this.createForm();
+    this.postSubscription = this.store.select(getPostById).subscribe((post) => {
+      this.post = post!;
+      this.postForm.patchValue({
+        title: post?.title,
+        description: post?.description,
+      });
     });
   }
 
@@ -40,11 +45,11 @@ export class EditPostComponent implements OnInit, OnDestroy {
 
   createForm() {
     this.postForm = new FormGroup({
-      title: new FormControl(this.post.title, [
+      title: new FormControl(null, [
         Validators.required,
         Validators.minLength(6),
       ]),
-      description: new FormControl(this.post.description, [
+      description: new FormControl(null, [
         Validators.required,
         Validators.minLength(10),
       ]),
@@ -72,8 +77,10 @@ export class EditPostComponent implements OnInit, OnDestroy {
     };
 
     //dispatch the update action
+    this.store.dispatch(setLoadingSpinner({ status: true }));
+
     this.store.dispatch(updatePost({ post }));
 
-    this.router.navigate(['posts']);
+    // this.router.navigate(['posts']);
   }
 }

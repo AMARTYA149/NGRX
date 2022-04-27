@@ -2,10 +2,14 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ofType, Actions, createEffect } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { mergeMap, map, switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { mergeMap, map, switchMap, catchError } from 'rxjs/operators';
 import { PostsService } from 'src/app/services/posts.service';
 import { AppState } from 'src/app/store/app.state';
-import { setLoadingSpinner } from 'src/app/store/Shared/shared.actions';
+import {
+  setErrorMessage,
+  setLoadingSpinner,
+} from 'src/app/store/Shared/shared.actions';
 import {
   addPost,
   addPostSuccess,
@@ -68,6 +72,11 @@ export class PostsEffects {
             this.router.navigate(['posts']);
             this.store.dispatch(setLoadingSpinner({ status: false }));
             return updatePostSuccess({ post: action.post });
+          }),
+          catchError((errResp) => {
+            this.store.dispatch(setLoadingSpinner({ status: false }));
+            const errorMessage = 'Post update failed';
+            return of(setErrorMessage({ message: errorMessage }));
           })
         );
       })

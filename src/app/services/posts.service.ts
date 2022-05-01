@@ -48,6 +48,12 @@ export class PostsService {
       `https://angular-ngrx-3f5b7-default-rtdb.firebaseio.com/posts/${id}.json`
     );
   }
+
+  getPostById(id: string): Observable<Post> {
+    return this.http.get<Post>(
+      `https://angular-ngrx-3f5b7-default-rtdb.firebaseio.com/posts/${id}.json`
+    );
+  }
 }
 
 // https://vue-completecourse.firebaseio.com/posts.json

@@ -9,6 +9,7 @@ import {
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { mergeMap, map, switchMap, catchError, filter } from 'rxjs/operators';
+import { Post } from 'src/app/models/posts.model';
 import { PostsService } from 'src/app/services/posts.service';
 import { AppState } from 'src/app/store/app.state';
 import {
@@ -25,6 +26,7 @@ import {
   updatePost,
   updatePostSuccess,
 } from './posts.actions';
+import { Update } from '@ngrx/entity';
 
 @Injectable()
 export class PostsEffects {
@@ -76,7 +78,13 @@ export class PostsEffects {
           map((data) => {
             this.router.navigate(['posts']);
             this.store.dispatch(setLoadingSpinner({ status: false }));
-            return updatePostSuccess({ post: action.post });
+            const updatedPost: Update<Post> = {
+              id: +(action.post.id?),
+              changes: {
+                ...action.post,
+              },
+            };
+            return updatePostSuccess({ post: updatedPost });
           }),
           catchError((errResp) => {
             this.store.dispatch(setLoadingSpinner({ status: false }));

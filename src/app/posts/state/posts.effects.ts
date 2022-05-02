@@ -79,7 +79,7 @@ export class PostsEffects {
             this.router.navigate(['posts']);
             this.store.dispatch(setLoadingSpinner({ status: false }));
             const updatedPost: Update<Post> = {
-              id: +(action.post.id?),
+              id: action.post.id!,
               changes: {
                 ...action.post,
               },

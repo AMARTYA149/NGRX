@@ -8,7 +8,14 @@ import {
 } from '@ngrx/router-store';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
-import { mergeMap, map, switchMap, catchError, filter } from 'rxjs/operators';
+import {
+  mergeMap,
+  map,
+  switchMap,
+  catchError,
+  filter,
+  withLatestFrom,
+} from 'rxjs/operators';
 import { Post } from 'src/app/models/posts.model';
 import { PostsService } from 'src/app/services/posts.service';
 import { AppState } from 'src/app/store/app.state';
@@ -27,6 +34,8 @@ import {
   updatePostSuccess,
 } from './posts.actions';
 import { Update } from '@ngrx/entity';
+import { getPosts } from './posts.selectors';
+import { dummyAction } from 'src/app/auth/state/auth.actions';
 
 @Injectable()
 export class PostsEffects {
@@ -40,13 +49,17 @@ export class PostsEffects {
   loadPosts$ = createEffect(() => {
     return this.actions$.pipe(
       ofType(loadPosts),
-      mergeMap((action) => {
-        return this.postsService.getPosts().pipe(
-          map((posts) => {
-            // console.log(data);
-            return loadPostsSuccess({ posts });
-          })
-        );
+      withLatestFrom(this.store.select(getPosts)),
+      mergeMap(([action, posts]) => {
+        if (!posts.length || posts.length === 1) {
+          return this.postsService.getPosts().pipe(
+            map((posts) => {
+              // console.log(data);
+              return loadPostsSuccess({ posts });
+            })
+          );
+        }
+        return of(dummyAction());
       })
     );
   });
@@ -118,13 +131,18 @@ export class PostsEffects {
       map((r: any) => {
         return r.payload.routerState.params.id;
       }),
-      switchMap((id) => {
-        return this.postsService.getPostById(id).pipe(
-          map((post) => {
-            const postData = [{ ...post, id }];
-            return loadPostsSuccess({ posts: postData });
-          })
-        );
+      withLatestFrom(this.store.select(getPosts)),
+
+      switchMap(([id, posts]) => {
+        if (!posts.length) {
+          return this.postsService.getPostById(id).pipe(
+            map((post) => {
+              const postData = [{ ...post, id }];
+              return loadPostsSuccess({ posts: postData });
+            })
+          );
+        }
+        return of(dummyAction());
       })
     );
   });

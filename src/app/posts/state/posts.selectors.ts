@@ -23,6 +23,10 @@ export const getPostById = createSelector(
   }
 );
 
+export const getCount = createSelector(getPostsState, (state) => {
+  return state.count;
+});
+
 // export const getPostById = (props: { id: string }) => {
 //   return createSelector(getPostsState, (state) =>
 //     state.posts.find((post) => post.id === props.id)
